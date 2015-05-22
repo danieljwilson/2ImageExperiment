@@ -1,19 +1,19 @@
 [HIT Configuration]
-title = Stroop task
-description = Judge the color of a series of words.
+title = Image Selection Test
+description = Select one of two images - each has a chance of paying a bonus award.
 amt_keywords = Perception, Psychology
 lifetime = 24
 us_only = true
 approve_requirement = 95
 contact_email_on_error = danieljwilson@gmail.com
-ad_group = Default psiTurk Stroop Example
-psiturk_keywords = stroop
-organization_name = New Great University
+ad_group = Test Experiment
+psiturk_keywords = test
+organization_name = University
 browser_exclude_rule = MSIE, mobile, tablet
 
 [Database Parameters]
 database_url = mysql://djw:dapper@localhost:3306/testdb
-table_name = Images01
+table_name = NewImages
 
 [Server Parameters]
 host = 0.0.0.0

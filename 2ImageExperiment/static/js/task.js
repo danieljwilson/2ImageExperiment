@@ -50,7 +50,7 @@ var lowerBound = 0.2;
 var upperBound = 0.8;
 var winPercentageLeft;
 var winPercentageRight;
-
+ 
 var randomNumber;
 
 //for stepping through the instructions at the beginning
@@ -62,6 +62,8 @@ var nextTrial = false;
 var newRound = true;
 var textNum = 0;
 var textPos;
+var selector;
+
 
 //Image arrays
 var images = [];
@@ -95,6 +97,8 @@ var imageCounter = 1;
 //For timing
 var imageOn;
 var elapsedT;
+var StartPauseTimer;
+var PauseTimer;
 
 //Recorded data variables
 var trialTotal = 0;
@@ -116,7 +120,7 @@ var i;
 
 
 function preload() {
-  psiTurk.doInstructions(
+  /*psiTurk.doInstructions(
       instructionPages, // a list of pages you want to display in sequence
       // what you want to do when you are done with instructions
       function (){
@@ -124,10 +128,7 @@ function preload() {
         $("#container-instructions").empty();
       }    
 
-    );
-
-
-
+    );*/
 
     //LOAD COLOR IMAGES
   for (i = 0; i< imageNumber; i++ ){
@@ -247,21 +248,27 @@ function draw() {
        
       if(!nextTrial) {
         printRound();
+
         //FOR LEFT SELECTION
-        if (key == String.fromCharCode(leftLetterSmall) || key == String.fromCharCode(leftLetterBig)) {
+        if (selector == 1) {
+          selector = 0;
           //TIMING CALCULATION
           elapsedT = millis() - imageOn;
+          StartPauseTimer = millis();
           leftSelect();
          }
         //FOR RIGHT SELECTION
-        if (key == String.fromCharCode(rightLetterSmall) || key == String.fromCharCode(rightLetterBig)) {
+        if (selector == 2) {
+          selector = 0;
           //TIMING CALCULATION
           elapsedT = millis() - imageOn;
+          StartPauseTimer = millis();
           rightSelect();
         }
        
-      upperBanner();
-      text("Select an image.      Left = '" + String.fromCharCode(leftLetterBig) + "', Right ='" + String.fromCharCode(rightLetterBig) + "'", width/2-200, 38);
+      text("Select an Image", width/2-65, 38);
+      text(String.fromCharCode(leftLetterBig), width/4, 38);
+      text(String.fromCharCode(rightLetterBig), 3*width/4, 38);
       //JAVA VERSION
       //text("Select an image.      Left = '" + char(leftLetterBig) + "', Right ='" + char(rightLetterBig) + "'", width/2-200, 38);
      }
@@ -273,17 +280,30 @@ function draw() {
      if(nextTrial) {
        printRound();
        printOutcome();          
-       upperBanner();
-       text("Press the 'B' key to continue", width/2-135, 38);
+       //pause for 1000
+
+       PauseTimer = millis()-StartPauseTimer;
+
+       if(PauseTimer>1500){
+          background(255);
+          strokeWeight(3);
+          line(width/2-15, height/2, width/2+15, height/2);
+          line(width/2, height/2-15, width/2, height/2+15);
+       }
+       //put on the cross
+       //pause for 300
+       //text("Press the 'B' key to continue", width/2-135, 38);
         
-        if(key == 'B' || key == 'b'){
+        //if(key == 'B' || key == 'b'){
+
+        if(PauseTimer > 2000){
           nextTrial = false;
-          setLetters();
 
           //RECORD DATA HERE
           record_responses(elapsedT, colorPos, BWPos, colorImageSelect, BWImageSelect, trialTotal, round, winPercentageLeft, winPercentageRight, trial, selected, win, wins, losses, money, leftSequentialSelect, rightSequentialSelect);
           //RESET TIMER
           imageOn = millis();
+          PauseTimer = 0;
 
           //After 10 trials (or 5 consecutive selections of one bandit) move on to the next round
           if (trial == 10 || leftSequentialSelect == 5 || rightSequentialSelect == 5){
@@ -291,6 +311,8 @@ function draw() {
             page-=1;
             leftSequentialSelect =0;
             rightSequentialSelect = 0;
+            setLetters();
+
           }
 
           if (trialTotal >= 20){
@@ -384,14 +406,14 @@ var endExperiment = function() {
 }
 
 
-
-function upperBanner(){
-    fill(0,0,0,155);
-    rect(width/2-240, 12, 480, 35);
-
-    textSize(20);
-    fill(255);
-}
+function keyPressed(){
+  if (key == String.fromCharCode(leftLetterSmall) || key == String.fromCharCode(leftLetterBig)){
+    selector = 1;
+    } else if (key == String.fromCharCode(rightLetterSmall) || key == String.fromCharCode(rightLetterBig)){
+    selector = 2;
+    }
+      return false;
+  }
 
 function lowerBanner(){
     fill(0,0,0,155);
@@ -543,10 +565,26 @@ function printRoundTitle(){
 }
 
 function updateRound(){
+  if (round == 0){
+    if (randomNumber > 0.5){
+      winPercentageRight = 0.7;
+      winPercentageLeft = 0.3;
+    }
+      else {
+        winPercentageRight = 0.3;
+        winPercentageLeft = 0.7;
+      }
+    round+=1;
+    }
+  
+
+  else{
   winPercentageLeft = random(lowerBound,upperBound);
-  winPercentageRight = random(lowerBound,upperBound);
+  winPercentageLeft = (Math.ceil(winPercentageLeft*20-0.5)/20).toFixed(2);
+  winPercentageRight = (1 - winPercentageLeft).toFixed(2);
   trial=0;
   round+=1;
+  }
   
   print("  Round #" + round);
   print("  Left: "+ winPercentageLeft);
@@ -583,14 +621,16 @@ function instructions(){
 }
 
 function page1() {
-    upperBanner();
+    fill(0);
+    textSize(20);
     text("Press the 'G' key to select the left image", width/2-190, 38);
 
     lowerBanner();
     text("PRACTICE", width/2-90, 440+45);
 }
 function page2() {
-    upperBanner();
+    fill(0);
+    textSize(20);
     text("Press the 'H' key to select the right image", width/2-190, 38);
 
     lowerBanner();
@@ -605,7 +645,8 @@ function page2() {
 }
 
 function page3 () {
-    upperBanner();
+    fill(0);
+    textSize(20);
     text("Press the 'B' key to begin", width/2-115, 38);
     
     lowerBanner();
