@@ -32,19 +32,16 @@ var instructionPages = [ // add as a list as many pages as you like
   "instructions/instruct-ready.html"
 ];
 
-//CAN WE USE THIS TO LOAD THE INSTRUCTION PAGES?
-
+//THIS IS FOR AN ALTERNATE INSTRUCTION PAGE METHOD - NOT CURRENTLY WORKING...
 /*
 $(window).load( function(){
     psiTurk.doInstructions(
       instructionPages, // a list of pages you want to display in sequence
       // what you want to do when you are done with instructions
-
     );
 });
 */
 
-//var ImageExperiment = function(p) {
 //You can change the upper and lower limit of the win percentage here
 var lowerBound = 0.2;
 var upperBound = 0.8;
@@ -111,37 +108,23 @@ var win = false;
 var selected;
 var leftSequentialSelect = 0;
 var rightSequentialSelect = 0;
-//also include the bw and color image for the trial
 
 //USING THIS TO EXPLICITLY STATE THE NUMBER OF IMAGES (instead of .length)
 var imageNumber = 20;
 var i;
 
 
-
 function preload() {
-  /*psiTurk.doInstructions(
-      instructionPages, // a list of pages you want to display in sequence
-      // what you want to do when you are done with instructions
-      function (){
-        console.log("Successfully loaded.");
-        $("#container-instructions").empty();
-      }    
 
-    );*/
-
-    //LOAD COLOR IMAGES
+  //LOAD COLOR IMAGES
   for (i = 0; i< imageNumber; i++ ){
-    images[i] = loadImage( "static/images/color" + i + ".jpg" );   // make sure images "0.jpg" to "11.jpg" exist
+    images[i] = loadImage( "static/images/color" + i + ".jpg" ); 
     }
-  //  psiturk.preloadImages(images);
   //LOAD BW IMAGES
   for (i = 0; i< imageNumber; i++ ){
-    BWimages[i] = loadImage( "static/images/bw_color" + i + ".jpg" );   // make sure images "0.jpg" to "11.jpg" exist
+    BWimages[i] = loadImage( "static/images/bw_color" + i + ".jpg" );
     }
-   // psiturk.preloadImages(BWimages);
 }
-
 
 
 /////////////////////////////////////////////////
@@ -153,14 +136,14 @@ function setup() {
   //set screen size
   createCanvas(1024, 520);
 
+  //Two demo images
   introImgBW = loadImage("static/images/intro_bw.jpg"); 
   introImgColor = loadImage("static/images/intro_color.jpg"); 
 
-  
+  //initialize round
   round = 0;
 
-  
-  //Initialize Array
+  //Initialize Array (for selecting images)
   for (var i = 0; i < imageNumber; i++) {
     colorShuffle[i] = i;
     BWShuffle[i] = i;
@@ -218,13 +201,16 @@ function draw() {
         }   
   }
   
+  //PAGE WITH NEW ROUND TITLE
    if (page==4){
     printRoundTitle();
 
     if (mouseIsPressed){
       page+=1;
       key='a';
+      //SELECTION letters are set here (reset with each new round)
       setLetters();
+
     }
   }
   
@@ -237,8 +223,7 @@ function draw() {
         updateRound();
         newRound = false;
         imageSelect();
-        //UNCOMMENT...starts timer
-        //imageOn = new Date().getTime();
+        //START TIMER
         imageOn = millis();
     }
     
@@ -269,33 +254,28 @@ function draw() {
       text("Select an Image", width/2-65, 38);
       text(String.fromCharCode(leftLetterBig), width/4, 38);
       text(String.fromCharCode(rightLetterBig), 3*width/4, 38);
-      //JAVA VERSION
-      //text("Select an image.      Left = '" + char(leftLetterBig) + "', Right ='" + char(rightLetterBig) + "'", width/2-200, 38);
+      
      }
       
     printEarnings();
     
-    //TEXT INDICATING WIN/LOSS  
-    //////////////////////////
+    //ONCE A SELECTION IS MADE... 
      if(nextTrial) {
        printRound();
        printOutcome();          
-       //pause for 1000
 
+       //TIMING for pause 
        PauseTimer = millis()-StartPauseTimer;
 
+       //PAUSE 1500ms, then show cross
        if(PauseTimer>1500){
           background(255);
           strokeWeight(3);
           line(width/2-15, height/2, width/2+15, height/2);
           line(width/2, height/2-15, width/2, height/2+15);
        }
-       //put on the cross
-       //pause for 300
-       //text("Press the 'B' key to continue", width/2-135, 38);
-        
-        //if(key == 'B' || key == 'b'){
 
+       //PAUSE 500ms with cross on screen then go to NEXT TRIAL
         if(PauseTimer > 2000){
           nextTrial = false;
 
@@ -305,22 +285,22 @@ function draw() {
           imageOn = millis();
           PauseTimer = 0;
 
-          //After 10 trials (or 5 consecutive selections of one bandit) move on to the next round
-          if (trial == 10 || leftSequentialSelect == 5 || rightSequentialSelect == 5){
+          //NEW ROUND TEST: After a set number of trials (or consecutive selections of one bandit) move on to the next round...
+          if (trial == 20 || leftSequentialSelect >= 7 || rightSequentialSelect >= 7){
             newRound = true;
             page-=1;
             leftSequentialSelect =0;
             rightSequentialSelect = 0;
-            setLetters();
+            setLetters();  //this may be redundant? Also called on 'page 4'
 
           }
 
-          if (trialTotal >= 20){
+          if (trialTotal >= 30){
             //Then save the data
             psiTurk.saveData();
             //Then compute the bonus [this is NOT working yet]
             psiTurk.computeBonus('compute_bonus');
-            //Then finish which loads the debriefing page
+            //Then finish - which loads the debriefing page
             finish();
            }
             
@@ -347,7 +327,6 @@ function draw() {
       "BW Position": BWPos,
       "Trial": trial,
       "Selected Image": selected,
-      //UNCOMMENT
       "Time Elapsed": elapsedT,
       "Win?": win,
       "Win Total": wins,
